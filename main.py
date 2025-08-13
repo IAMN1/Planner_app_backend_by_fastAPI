@@ -4,15 +4,27 @@ from routes.users import user_router
 from routes.events import event_router
 from contextlib import asynccontextmanager
 import uvicorn
-from database.connection import conn
-
+from database.connection import Settings
+from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    conn()
+    await settings.initialize_database()
     yield
-    
+
+settings = Settings()
+
 app = FastAPI(lifespan=lifespan)
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 app.include_router(user_router, prefix="/user")
 app.include_router(event_router, prefix='/event')
